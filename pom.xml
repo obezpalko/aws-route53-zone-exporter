@@ -4,7 +4,7 @@
     <groupId>com.wixpress.system</groupId>
     <artifactId>wix-aws-exporter</artifactId>
     <packaging>pom</packaging>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.1-SNAPSHOT</version>
     <description>Wix AWS exporter</description>
     <parent>
       <groupId>com.wixpress.common</groupId>
