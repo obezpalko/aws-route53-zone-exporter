@@ -6,7 +6,7 @@ import http.server
 import json
 import os
 import threading
-# import time
+import time
 
 import boto3
 import prometheus_client
@@ -105,6 +105,6 @@ if __name__ == '__main__':
         registry=registry,
     )
     prometheus_client.start_http_server(8080, registry=registry)  # prometheus server
-    # while True:
-    #     main(g, g_l)
-    #     time.sleep(300)
+    while True:
+        #     main(g, g_l)
+        time.sleep(3600)
