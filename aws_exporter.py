@@ -53,6 +53,7 @@ def main(g, g_l):
     except Exception as error:
         print('An error occurred getting source zone records:')
         print(str(error))
+        return
     print(f'{len(all_records)} zones have been collected')
 
 
@@ -62,19 +63,26 @@ class MyHTTPHandler(http.server.BaseHTTPRequestHandler):
         pass
 
     def do_GET(self):
-        self.send_response(200)
         content_type = 'text/plain'
         if self.path == '/health/is_alive':
             response = 'Alive\n'
+        elif self.path == '/metrics':
+            self.send_response(301)
+            self.send_header('Location', f"http://{self.headers.get('Host').split(':')[0]}:8080/metrics")
+            self.end_headers()
+            return
         else:
             response = json.dumps(dict(os.environ))
             content_type = 'application/json'
-
+        self.send_response(200)
         self.send_header('Content-Type', f'{content_type}; charset=utf-8')
         self.end_headers()
         self.wfile.write(response.encode('utf-8'))
 
     def do_POST(self):
+        pass
+
+    def do_HEAD(self):
         pass
 
 
@@ -106,5 +114,5 @@ if __name__ == '__main__':
     )
     prometheus_client.start_http_server(8080, registry=registry)  # prometheus server
     while True:
-        #     main(g, g_l)
+        main(g, g_l)
         time.sleep(3600)
