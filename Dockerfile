@@ -6,9 +6,10 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 WORKDIR /
-COPY aws_exporter.py ./
+ADD templates /templates
+COPY aws_exporter.py /
 
-RUN ln -s /config /.aws
+RUN ln -s /configs /.aws
 
 USER nobody
 
