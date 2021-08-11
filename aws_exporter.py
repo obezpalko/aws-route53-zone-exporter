@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
 """
-geat route53 counts and limits for all zones
+get route53 counts and limits for all zones
 """
 import http.server
 import json
 import os
 import threading
-import time
+# import time
 
 import boto3
-from prometheus_client import CollectorRegistry
-from prometheus_client import Gauge
-from prometheus_client import start_http_server
+import prometheus_client
 
 
 def main(g, g_l):
@@ -55,7 +53,6 @@ def main(g, g_l):
     except Exception as error:
         print('An error occurred getting source zone records:')
         print(str(error))
-        raise
     print(f'{len(all_records)} zones have been collected')
 
 
@@ -94,20 +91,20 @@ def http_server():
 
 if __name__ == '__main__':
     http_server()
-    registry = CollectorRegistry()
-    g = Gauge(
+    registry = prometheus_client.CollectorRegistry()
+    g = prometheus_client.Gauge(
         'aws_route53_zone_rr_count',
         'number of records in aws zone',
         ['name', 'private', 'id'],
         registry=registry,
     )
-    g_l = Gauge(
+    g_l = prometheus_client.Gauge(
         'aws_route53_zone_rr_limit',
         'max records in aws_zone',
         ['name', 'private', 'id'],
         registry=registry,
     )
-    start_http_server(8080, registry=registry)  # prometheus server
-    while True:
-        main(g, g_l)
-        time.sleep(300)
+    prometheus_client.start_http_server(8080, registry=registry)  # prometheus server
+    # while True:
+    #     main(g, g_l)
+    #     time.sleep(300)
