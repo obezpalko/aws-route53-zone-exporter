@@ -14,6 +14,7 @@ import prometheus_client
 
 
 REGISTRY = prometheus_client.CollectorRegistry()
+FAVICON = open('/static/favicon.ico', 'rb').read()
 logging.basicConfig(
     format='%(asctime)s %(levelname)s: %(message)s',
     level=logging.INFO
@@ -77,6 +78,9 @@ class MyHTTPHandler(http.server.BaseHTTPRequestHandler):
             response = 'Alive\n'.encode('utf-8')
         elif self.path == '/metrics':
             response = prometheus_client.generate_latest(registry=REGISTRY)
+        elif self.path == '/favicon.ico':
+            response = FAVICON
+            content_type = 'image/x-icon'
         else:
             response = json.dumps(dict(os.environ)).encode('utf-8')
             content_type = 'application/json'
@@ -85,8 +89,8 @@ class MyHTTPHandler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(response)
 
-    # def do_POST(self):
-    #     pass
+    def do_POST(self):
+        pass
     #
     # def do_HEAD(self):
     #     pass
@@ -110,6 +114,7 @@ def start_http_server():
 
 if __name__ == '__main__':
     logging.info('starting app')
+
     g = prometheus_client.Gauge(
         'aws_route53_zone_rr_count',
         'number of records in aws zone',
