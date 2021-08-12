@@ -96,14 +96,16 @@ def start_http_server():
     """
     start additional http server for health checks
     """
-    logging.info('starting http server')
-
-    server = http.server.HTTPServer(('', 8084), MyHTTPHandler)
-    health_server_thread = threading.Thread(
-        target=server.serve_forever, daemon=True,
-    )
-    health_server_thread.start()
-    logging.info('started http server')
+    treads = {}
+    for port in [8080, 8084]:
+        logging.info(f'starting server or {port}')
+        server_address = ('', port)
+        server = http.server.HTTPServer(server_address, MyHTTPHandler)
+        treads[port] = threading.Thread(
+            target=server.serve_forever, daemon=True,
+        )
+        treads[port].start()
+        logging.info(f'server on {port} started')
 
 
 if __name__ == '__main__':
