@@ -7,9 +7,18 @@ import json
 import os
 import threading
 import time
+import logging
 
 import boto3
 import prometheus_client
+
+
+REGISTRY = prometheus_client.CollectorRegistry()
+logging.basicConfig(
+    format='%(asctime)s %(levelname)s: %(message)s',
+    level=logging.INFO
+)
+# logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.DEBUG)
 
 
 def main(g, g_l):
@@ -51,68 +60,67 @@ def main(g, g_l):
                     zone['Id'].replace('/hostedzone/', ''),
                 ).set(limit_response['Limit']['Value'])
     except Exception as error:
-        print('An error occurred getting source zone records:')
-        print(str(error))
-        return
-    print(f'{len(all_records)} zones have been collected')
+        logging.error('An error occurred getting source zone records:')
+        logging.critical(str(error))
+        raise
+    logging.info(f'{len(all_records)} zones have been collected')
 
 
 class MyHTTPHandler(http.server.BaseHTTPRequestHandler):
 
-    def log_request(self, code='-', size='-'):
-        pass
+    # def log_request(self, code='-', size='-'):
+    #     pass
 
     def do_GET(self):
         content_type = 'text/plain'
         if self.path == '/health/is_alive':
-            response = 'Alive\n'
+            response = 'Alive\n'.encode('utf-8')
         elif self.path == '/metrics':
-            self.send_response(301)
-            self.send_header('Location', f"http://{self.headers.get('Host').split(':')[0]}:8080/metrics")
-            self.end_headers()
-            return
+            response = prometheus_client.generate_latest(registry=REGISTRY)
         else:
-            response = json.dumps(dict(os.environ))
+            response = json.dumps(dict(os.environ)).encode('utf-8')
             content_type = 'application/json'
         self.send_response(200)
         self.send_header('Content-Type', f'{content_type}; charset=utf-8')
         self.end_headers()
-        self.wfile.write(response.encode('utf-8'))
+        self.wfile.write(response)
 
-    def do_POST(self):
-        pass
+    # def do_POST(self):
+    #     pass
+    #
+    # def do_HEAD(self):
+    #     pass
 
-    def do_HEAD(self):
-        pass
 
-
-def http_server():
+def start_http_server():
     """
     start additional http server for health checks
     """
+    logging.info('starting http server')
+
     server = http.server.HTTPServer(('', 8084), MyHTTPHandler)
     health_server_thread = threading.Thread(
         target=server.serve_forever, daemon=True,
     )
     health_server_thread.start()
+    logging.info('started http server')
 
 
 if __name__ == '__main__':
-    http_server()
-    registry = prometheus_client.CollectorRegistry()
+    logging.info('starting app')
     g = prometheus_client.Gauge(
         'aws_route53_zone_rr_count',
         'number of records in aws zone',
         ['name', 'private', 'id'],
-        registry=registry,
+        registry=REGISTRY,
     )
     g_l = prometheus_client.Gauge(
         'aws_route53_zone_rr_limit',
         'max records in aws_zone',
         ['name', 'private', 'id'],
-        registry=registry,
+        registry=REGISTRY,
     )
-    prometheus_client.start_http_server(8080, registry=registry)  # prometheus server
+    start_http_server()
     while True:
         main(g, g_l)
         time.sleep(3600)
