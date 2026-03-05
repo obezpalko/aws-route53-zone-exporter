@@ -14,7 +14,7 @@ import prometheus_client
 
 
 REGISTRY = prometheus_client.CollectorRegistry()
-FAVICON = open('/static/favicon.ico', 'rb').read()
+FAVICON = open(os.path.join(os.path.dirname(__file__), 'static', 'favicon.ico'), 'rb').read()
 logging.basicConfig(
     format='%(asctime)s %(levelname)s: %(message)s',
     level=logging.INFO
@@ -81,9 +81,12 @@ class MyHTTPHandler(http.server.BaseHTTPRequestHandler):
         elif self.path == '/favicon.ico':
             response = FAVICON
             content_type = 'image/x-icon'
-        else:
-            response = json.dumps(dict(os.environ)).encode('utf-8')
+        elif self.path == '/healthz':
+            response = json.dumps({'status': 'ok', 'message': 'app is running'}).encode('utf-8')
             content_type = 'application/json'
+        else:
+            response = b'Exporter for AWS Route53 zones. See /metrics.'
+            content_type = 'text/plain'
         self.send_response(200)
         self.send_header('Content-Type', f'{content_type}; charset=utf-8')
         self.end_headers()
@@ -101,15 +104,15 @@ def start_http_server():
     start additional http server for health checks
     """
     treads = {}
-    for port in [8080, 8084]:
-        logging.info(f'starting server or {port}')
-        server_address = ('', port)
-        server = http.server.HTTPServer(server_address, MyHTTPHandler)
-        treads[port] = threading.Thread(
-            target=server.serve_forever, daemon=True,
-        )
-        treads[port].start()
-        logging.info(f'server on {port} started')
+    port = 8080
+    logging.info(f'starting server on {port}')
+    server_address = ('', port)
+    server = http.server.HTTPServer(server_address, MyHTTPHandler)
+    thread = threading.Thread(
+        target=server.serve_forever, daemon=True,
+    )
+    thread.start()
+    logging.info(f'server on {port} started')
 
 
 if __name__ == '__main__':

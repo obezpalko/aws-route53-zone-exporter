@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "aws-route53-zone-exporter.fullname" . }}
+  labels:
+    {{- include "aws-route53-zone-exporter.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "aws-route53-zone-exporter.selectorLabels" . | nindent 4 }}
