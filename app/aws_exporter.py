@@ -2,25 +2,24 @@
 """
 get route53 counts and limits for all zones
 """
-import http.server
+from flask import Flask, Response, send_file, jsonify
 import json
 import os
-import threading
 import time
 import logging
+import io
 
 import boto3
 import prometheus_client
 
-
+app = Flask(__name__)
 REGISTRY = prometheus_client.CollectorRegistry()
-FAVICON = open(os.path.join(os.path.dirname(__file__), 'static', 'favicon.ico'), 'rb').read()
+FAVICON_PATH = os.path.join(os.path.dirname(__file__), 'static', 'favicon.ico')
 logging.basicConfig(
     format='%(asctime)s %(levelname)s: %(message)s',
     level=logging.INFO
 )
 # logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.DEBUG)
-
 
 def main(g, g_l):
     """
@@ -67,53 +66,23 @@ def main(g, g_l):
     logging.info(f'{len(all_records)} zones have been collected')
 
 
-class MyHTTPHandler(http.server.BaseHTTPRequestHandler):
-
-    # def log_request(self, code='-', size='-'):
-    #     pass
-
-    def do_GET(self):
-        content_type = 'text/plain'
-        if self.path == '/health/is_alive':
-            response = 'Alive\n'.encode('utf-8')
-        elif self.path == '/metrics':
-            response = prometheus_client.generate_latest(registry=REGISTRY)
-        elif self.path == '/favicon.ico':
-            response = FAVICON
-            content_type = 'image/x-icon'
-        elif self.path == '/healthz':
-            response = json.dumps({'status': 'ok', 'message': 'app is running'}).encode('utf-8')
-            content_type = 'application/json'
-        else:
-            response = b'Exporter for AWS Route53 zones. See /metrics.'
-            content_type = 'text/plain'
-        self.send_response(200)
-        self.send_header('Content-Type', f'{content_type}; charset=utf-8')
-        self.end_headers()
-        self.wfile.write(response)
-
-    def do_POST(self):
-        pass
-    #
-    # def do_HEAD(self):
-    #     pass
 
 
-def start_http_server():
-    """
-    start additional http server for health checks
-    """
-    treads = {}
-    port = 8080
-    logging.info(f'starting server on {port}')
-    server_address = ('', port)
-    server = http.server.HTTPServer(server_address, MyHTTPHandler)
-    thread = threading.Thread(
-        target=server.serve_forever, daemon=True,
-    )
-    thread.start()
-    logging.info(f'server on {port} started')
+@app.route('/')
+def root():
+    return 'Exporter for AWS Route53 zones. See /metrics.'
 
+@app.route('/metrics')
+def metrics():
+    return Response(prometheus_client.generate_latest(REGISTRY), mimetype='text/plain; version=0.0.4; charset=utf-8')
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_file(FAVICON_PATH, mimetype='image/x-icon')
+
+@app.route('/healthz')
+def healthz():
+    return jsonify({'status': 'ok', 'message': 'app is running'})
 
 if __name__ == '__main__':
     logging.info('starting app')
@@ -130,7 +99,7 @@ if __name__ == '__main__':
         ['name', 'private', 'id'],
         registry=REGISTRY,
     )
-    start_http_server()
-    while True:
-        main(g, g_l)
-        time.sleep(3600)
+    # Initial scrape
+    main(g, g_l)
+    app.run(host='0.0.0.0', port=8080)
+    # For production, use: gunicorn -w 4 -b 0.0.0.0:8080 aws_exporter:app

@@ -1,3 +1,1 @@
-# awscli
-boto3
-prometheus-client
+gunicorn==25.1.0
