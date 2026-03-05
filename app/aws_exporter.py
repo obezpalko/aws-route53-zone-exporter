@@ -72,9 +72,11 @@ def main(g, g_l):
 def root():
     return 'Exporter for AWS Route53 zones. See /metrics.'
 
-@app.before_first_request
+@app.before_request
 def populate_metrics():
-    main(g, g_l)
+    if not hasattr(app, 'metrics_populated'):
+        main(g, g_l)
+        app.metrics_populated = True
 
 @app.route('/metrics')
 def metrics():
