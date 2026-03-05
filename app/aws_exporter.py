@@ -72,6 +72,10 @@ def main(g, g_l):
 def root():
     return 'Exporter for AWS Route53 zones. See /metrics.'
 
+@app.before_first_request
+def populate_metrics():
+    main(g, g_l)
+
 @app.route('/metrics')
 def metrics():
     return Response(prometheus_client.generate_latest(REGISTRY), mimetype='text/plain; version=0.0.4; charset=utf-8')
@@ -84,22 +88,20 @@ def favicon():
 def healthz():
     return jsonify({'status': 'ok', 'message': 'app is running'})
 
+g = prometheus_client.Gauge(
+    'aws_route53_zone_rr_count',
+    'number of records in aws zone',
+    ['name', 'private', 'id'],
+    registry=REGISTRY,
+)
+g_l = prometheus_client.Gauge(
+    'aws_route53_zone_rr_limit',
+    'max records in aws_zone',
+    ['name', 'private', 'id'],
+    registry=REGISTRY,
+)
+
 if __name__ == '__main__':
     logging.info('starting app')
-
-    g = prometheus_client.Gauge(
-        'aws_route53_zone_rr_count',
-        'number of records in aws zone',
-        ['name', 'private', 'id'],
-        registry=REGISTRY,
-    )
-    g_l = prometheus_client.Gauge(
-        'aws_route53_zone_rr_limit',
-        'max records in aws_zone',
-        ['name', 'private', 'id'],
-        registry=REGISTRY,
-    )
-    # Initial scrape
-    main(g, g_l)
     app.run(host='0.0.0.0', port=8080)
     # For production, use: gunicorn -w 4 -b 0.0.0.0:8080 aws_exporter:app
