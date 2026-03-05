@@ -56,5 +56,5 @@ jobs:
 
       - name: Package and push
         run: |
-          helm package helm/aws-node-retag --destination /tmp/helm
+          helm package helm/aws-route53-zone-exporter --destination /tmp/helm
           helm push /tmp/helm/aws-route53-zone-exporter-*.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
