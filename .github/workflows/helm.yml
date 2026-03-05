@@ -8,6 +8,7 @@ on:
     paths:
       - 'helm/**'
       - '.github/workflows/helm.yml'
+  workflow_dispatch:
 
 jobs:
   # ── GitHub Pages (classic helm repo) ─────────────────────────────────────
