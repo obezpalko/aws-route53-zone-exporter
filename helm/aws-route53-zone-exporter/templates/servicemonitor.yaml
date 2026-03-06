@@ -1,0 +1,28 @@
+{{- if .Values.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "aws-route53-zone-exporter.fullname" . }}
+  labels:
+    {{- include "aws-route53-zone-exporter.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "aws-route53-zone-exporter.selectorLabels" . | nindent 6 }}
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      scheme: http
+      {{- with .Values.serviceMonitor.metricRelabelings }}
+      metricRelabelings:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.serviceMonitor.relabelings }}
+      relabelings:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+{{- end }}
