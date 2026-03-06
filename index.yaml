@@ -2,6 +2,17 @@ apiVersion: v1
 entries:
   aws-route53-zone-exporter:
   - apiVersion: v2
+    appVersion: 0.2.0
+    created: "2026-03-06T09:18:21.398348269Z"
+    description: A Helm chart for Kubernetes
+    digest: 83f142fbe529ac5674e99bd39f5df9c19b192cd04d8fe207342d620ead5f4a03
+    icon: data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTIiIGZpbGw9IiMyMzJGM0UiLz4KICA8Y2lyY2xlIGN4PSIzMiIgY3k9IjMyIiByPSIyMiIgZmlsbD0iI0ZGOTkwMCIvPgogIDx0ZXh0IHg9IjMyIiB5PSI0MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIyMiIgZm9udC1mYW1pbHk9IkFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWYiIGZpbGw9IiMyMzJGM0UiIGZvbnQtd2VpZ2h0PSJib2xkIj5SNTM8L3RleHQ+Cjwvc3ZnPgo=
+    name: aws-route53-zone-exporter
+    type: application
+    urls:
+    - https://github.com/obezpalko/aws-route53-zone-exporter/releases/download/aws-route53-zone-exporter-0.2.0/aws-route53-zone-exporter-0.2.0.tgz
+    version: 0.2.0
+  - apiVersion: v2
     appVersion: 0.1.0
     created: "2026-03-06T08:09:18.788047842Z"
     description: A Helm chart for Kubernetes
@@ -12,4 +23,4 @@ entries:
     urls:
     - https://github.com/obezpalko/aws-route53-zone-exporter/releases/download/aws-route53-zone-exporter-0.1.0/aws-route53-zone-exporter-0.1.0.tgz
     version: 0.1.0
-generated: "2026-03-06T08:09:18.78806028Z"
+generated: "2026-03-06T09:18:21.398356275Z"
