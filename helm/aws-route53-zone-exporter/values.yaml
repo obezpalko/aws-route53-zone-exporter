@@ -82,6 +82,7 @@ resources: {}
 # ServiceMonitor for Prometheus Operator
 serviceMonitor:
   enabled: false
+  labels: {}
   metricRelabelings: []
   relabelings: []
 
